@@ -17,27 +17,27 @@ function molgenCheckdeps {
 }
 
 function molgenFrcmod {
-    genMol2 ../$ligfile > ${residue}.mol2
-    prepGaussian ${residue}.mol2 $residue
-    g09 ${residue}.com
-    parseGaussian ${residue}.log $residue
-    genFrcmod ${residue}_opt.mol2 $residue
+    genMol2 ../$ligfile > ${residue}.mol2 && \
+    prepGaussian ${residue}.mol2 $residue && \
+    g09 ${residue}.com && \
+    parseGaussian ${residue}.log $residue && \
+    genFrcmod ${residue}_opt.mol2 $residue && \
     echo "Please, modify the molecule/${residue}.frcmod file."
-    confirm "Type Y or y when you're done: " || return 1
+    confirm "Type Y or y when you're done: "
 }
 
 function molgenMD {
-    genVacuumMDSystem $residue $leaprc
-    runMD ../templates/vac_min.in $residue
-    runMD ../templates/vac_md.in $residue vac_min/${residue}.rst
+    genVacuumMDSystem $residue $leaprc && \
+    runMD ../templates/vac_min.in $residue && \
+    runMD ../templates/vac_md.in $residue vac_min/${residue}.rst || return 1
     echo "Please, check the molecule behaves as expected in vacuum md."
     echo "You can load the trajectory by:"
     echo "    vmd -f molecule/vac_md/${residue}.prmtop -f molecule/vac_md/${residue}.mdcrd"
-    confirm "Type Y or y to continue: " || return 1
+    confirm "Type Y or y to continue: "
 }
 
 function molgenGenOff {
-    genLigOff ${residue} $leaprc
+    genLigOff ${residue} $leaprc && \
     mv ${residue}.off ../results/
 }
 
