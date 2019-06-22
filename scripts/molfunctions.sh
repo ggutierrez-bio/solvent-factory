@@ -60,7 +60,7 @@ function genVacuumMDSystem {
 ${residue}parm = loadAmberParams ${residue}.frcmod
 $residue = loadMol2 ${residue}_opt.mol2
 check $residue
-saveAmberParm $residue ${residue}.top ${residue}.crd
+saveAmberParm $residue ${residue}.prmtop ${residue}.crd
 quit
 EOF
     
@@ -70,7 +70,7 @@ function runMD {
     infile=${1}
     residue=${2:-LIG}
     crdfile=${3:-"${residue}.crd"}
-    topfile=${4:-"${residue}.top"}
+    topfile=${4:-"${residue}.prmtop"}
     rstfile=${5:-"${residue}.rst"}
     trjfile=${6:-"${residue}.mdcrd"}
     checkFile $crdfile
