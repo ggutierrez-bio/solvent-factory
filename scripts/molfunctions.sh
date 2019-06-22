@@ -28,9 +28,9 @@ function prepGaussian {
     infile=${1}
     checkFile $infile || return 1
     outfile=${2:-infile%%.mol2}.com
+    [[ -z "$residue" ]] && residue=${3:-LIG}
     charge=$(calcMol2Charge $infile)
-    title=$(getMol2Title $infile)
-    antechamber -i $infile -fi mol2 -o $outfile -fo gcrt -nc "$charge" -ch $title
+    antechamber -i $infile -fi mol2 -o $outfile -fo gcrt -nc "$charge" -ch $residue
 }
 
 function parseGaussian {

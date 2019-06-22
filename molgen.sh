@@ -21,7 +21,7 @@ function molgenFrcmod {
     prepGaussian ${residue}.mol2 $residue && \
     g09 ${residue}.com && \
     parseGaussian ${residue}.log $residue && \
-    genFrcmod ${residue}_opt.mol2 $residue && \
+    genFrcmod ${residue}_opt.mol2 $residue || return 1
     echo "Please, modify the molecule/${residue}.frcmod file."
     confirm "Type Y or y when you're done: "
 }
