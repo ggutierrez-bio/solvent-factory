@@ -1,0 +1,6 @@
+#  Minimization
+&cntrl
+ntb=0, cut=50,
+imin=1, maxcyc=50000,
+ntpr=100,
+/
