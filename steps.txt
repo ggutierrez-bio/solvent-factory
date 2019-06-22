@@ -1,0 +1,73 @@
+Parameterize the molecule (Done)
+
+Automatic + {
+    generate a 3d molecule with hydrogens in mol2.
+    use antechamber to create the gaussian config for geometry optimization
+    run gaussian
+    use antechamber to create a mol2 file with RESP and amber atom types
+    create a frcmod with parmchk
+}
+
+Human intervention {
+    edit the frcmod
+}
+
+Automatic + {
+    create top and crd files for simulation
+    run md in vacuum, with minimization and equilibration
+}
+Human intervention ["optional"] {
+    check geometry and vibrations for the molecule
+}
+Automatic + {
+    save ligand unit and parameters to .off file
+}
+
+Create solvent box (Todo)
+Automatic {
+    generate the unit with tleap
+    save it to .off file
+    run md to minimize and equilibrate the system. pbc and all
+    compact it with ptraj
+    generate the .off for the solvent box
+    generate the config file for mdmix solvent
+}
+Human intervention [maybe automatic] {
+    add to mdmix solvents db
+}
+
+> 2) USAR tleap PARA GENERAR UNA CAJA (ESTE EJEMPLO ES PARA 1 SOLA MOLECULA de PYRIDINA en una caja al 1%)
+> module load amber12
+> tleap
+>         loadoff PYR.off
+>         PYRWAT1 = copy PYR
+>         solvatebox PYRWAT1 TIP3PBOX 8.92 iso
+>         saveoff PYRparm PYRWAT1.off
+>         saveoff PYR PYRWAT1.off
+>         saveoff PYRWAT1 PYRWAT1.off
+>         saveAmberParm PYRWAT1 PYRWAT1.top PYRWAT1.crd
+>         quit
+>
+> ## REMOVE SCEE AND SCNB FIELDS IN TOPOLOGY FILE == IMPORTANTE!
+>
+> mkdir EQUILIBRATE
+> cd EQUILIBRATE/
+> ### RUN equilibration
+> ptraj ../PYRWAT1.top << EOF
+> trajin eq5.rst
+> center :1 mass origin
+> image :* origin center byres familiar
+> trajout eq5_centered.pdb PDB
+> done
+> EOF
+> mv eq5_centered.pdb.1 eq5_centered.pdb
+>
+> tleap
+>         loadoff PYR.off
+>         PYRWAT1 = loadpdb ./EQUILIBRATE/eq5_centered.pdb
+>         setbox PYRWAT1 centers
+>         saveoff PYRWAT1 PYRWAT1_OK.off
+>         saveoff PYR PYRWAT1_OK.off
+>         saveoff PYRparm PYRWAT1_OK.off
+>         saveoff WAT PYRWAT1_OK.off
+>         quit

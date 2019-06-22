@@ -1,0 +1,104 @@
+Solvent boxes factory for MDMix
+
+Index:
+1. Introduction
+2. Contents
+3. Requirements
+4. Steps and instructions
+
+Appendix I. Original mail with instructions for solvent preparation
+
+
+1. Introduction
+
+This miniproject puts together the steps we're following to
+create new solvent boxes for MDMix (say goodbye to the mail
+that has been passed down through generations of PhD students
+during the last 10 years or so. See Appendix I).
+
+The final goal for this is full automation, but there are some
+steps that make it dificult. We will try to keep human intervention
+as limited as possible while this is achieved.
+
+
+2. Contents
+
+This repository contains  [all of these files, etc]
+TODO: fill this
+
+3. Requirements
+
+There are (some) requirements:
+   * ambertools (preferably latest)
+   * openbabel (orinigally MOE)
+   * Gaussian (probably replaced by GAMESS in the future)
+
+
+3. Steps and instructions
+
+In this section we can find a more detailed version of steps.txt file,
+which has just the steps for the workflow.
+TODO: fill this
+
+
+Appendix I: Original mail with instructions for solvent preparation.
+
+>  1) CREAR 1 MOLECULA DE DMSO SIGUIENDO ESTOS PASOS (cambiando nombre de la molecula):
+>
+> # 1) Generate mol2 (with H) (use MOE)
+> # 2) antechamber -i mol.mol2 -fi mol2 -o mol.com -fo gcrt -nc 0 -ch mol (nc = total charge)
+> # 3) run Gaussian: g09 mol.com (opt + electrostatic potential + ESP charges)
+> # 4) antechamber -i mol.log -fi gout -o mol_ok.mol2 -fo mol2 -c resp -rn LIG -at amber
+> # 5) parmchk -i mol_ok.mol2 -f mol2 -o LIG.frcmod -p $AMBERHOME/dat/leap/parm/parm99.dat
+> # 6) Edit LIG.frcmod
+> EN tleap:
+>> LIGparm = loadAmberParams LIG.frcmod
+>> LIG = loadMol2 LIG_ok.mol2
+>> check LIG
+>> saveAmberParm LIG lig.top lig.crd
+> # Minimize and check that geometry is ok (very similar to X-ray & HF opt):
+> # sander -O -i min_vac.in -o min_vac.out -p lig.top -c lig.crd -r lig_min.crd
+> # ambpdb -p lig.top < lig_min.crd > lig_min.pdb
+>> saveOff LIG LIG.off
+>> saveOff LIGparm LIG.off
+>
+
+Para parametrizar torsiones:
+http://www.ub.edu/cbdd/?q=content/small-molecule-dihedrals-parametrization
+
+
+> 2) USAR tleap PARA GENERAR UNA CAJA (ESTE EJEMPLO ES PARA 1 SOLA MOLECULA de PYRIDINA en una caja al 1%)
+> module load amber12
+> tleap
+>         loadoff PYR.off
+>         PYRWAT1 = copy PYR
+>         solvatebox PYRWAT1 TIP3PBOX 8.92 iso
+>         saveoff PYRparm PYRWAT1.off
+>         saveoff PYR PYRWAT1.off
+>         saveoff PYRWAT1 PYRWAT1.off
+>         saveAmberParm PYRWAT1 PYRWAT1.top PYRWAT1.crd
+>         quit
+>
+> ## REMOVE SCEE AND SCNB FIELDS IN TOPOLOGY FILE == IMPORTANTE!
+>
+> mkdir EQUILIBRATE
+> cd EQUILIBRATE/
+> ### RUN equilibration
+> ptraj ../PYRWAT1.top << EOF
+> trajin eq5.rst
+> center :1 mass origin
+> image :* origin center byres familiar
+> trajout eq5_centered.pdb PDB
+> done
+> EOF
+> mv eq5_centered.pdb.1 eq5_centered.pdb
+>
+> tleap
+>         loadoff PYR.off
+>         PYRWAT1 = loadpdb ./EQUILIBRATE/eq5_centered.pdb
+>         setbox PYRWAT1 centers
+>         saveoff PYRWAT1 PYRWAT1_OK.off
+>         saveoff PYR PYRWAT1_OK.off
+>         saveoff PYRparm PYRWAT1_OK.off
+>         saveoff WAT PYRWAT1_OK.off
+>         quit
