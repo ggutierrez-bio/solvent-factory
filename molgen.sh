@@ -12,7 +12,7 @@ function molgenUsage {
 function molgenCheckdeps {
     checkAmbertools return 1
     checkObabel return 1
-    # checkGaussian || return 1
+    checkGaussian || return 1
 }
 
 function molgenFrcmod {
