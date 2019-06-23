@@ -2,7 +2,6 @@
 
 source config.sh
 source scripts/molfunctions.sh
-source scripts/files.sh
 source scripts/util.sh
 source scripts/depcheck.sh
 
@@ -20,7 +19,14 @@ function molgenFrcmod {
     genMol2 ../$ligfile > ${residue}.mol2 && \
     prepGaussian ${residue}.mol2 $residue && \
     g09 ${residue}.com && \
-    parseGaussian ${residue}.log $residue && \
+    if ! checkRespGaussian ${residue}.log ; then
+        genGaussianFixCom ${residue}.log > ${residue}_fix.com && \
+        g09 ${residue}_fix.com && \
+        genGaussianFixedLog ${residue}_fix.log > ${residue}.resp.log || return 1
+        resplog=${residue}.resp.log
+    fi
+    resplog=${resplog:-"${residue}.log"}
+    parseGaussian $resplog $residue && \
     genFrcmod ${residue}_opt.mol2 $residue || return 1
     echo "Please, modify the molecule/${residue}.frcmod file."
     confirm "Type Y or y when you're done: "

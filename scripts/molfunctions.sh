@@ -1,4 +1,9 @@
 #!/bin/bash
+scriptsdir=$(dirname $BASH_SOURCE)
+source $scriptsdir/gaussianFix.sh
+source $scriptsdir/files.sh
+
+
 function genMol2 {
     smifile=${1:-lig.smi}
     ph=${2:-7.2}
@@ -31,6 +36,46 @@ function prepGaussian {
     [[ -z "$residue" ]] && residue=${3:-LIG}
     charge=$(calcMol2Charge $infile)
     antechamber -i $infile -fi mol2 -o $outfile -fo gcrt -nc "$charge" -ch $residue
+}
+
+function checkRespGaussian {
+    infile=${1}
+    checkFile $infile || return 1
+    if [ "$(egrep '^\s*[0-9]+\sFit' $infile)" == "" ]; then
+        return 1
+    fi
+}
+
+function genGaussianFixCom {
+    infile=${1}
+    checkFile $infile || return 1
+    printf "%s\n" "$(grep -i "%chk=" ${infile})"
+    printf "#p geom=allcheck chkbas guess=(read,only) density=check\n"
+    printf "nosymm prop=(potential,read) pop=minimal\n\n"
+    grep "ESP Fit Center" ${infile} | cut -c32- -
+    printf "\n"
+}
+
+function genGaussianFixedLog {
+    infile=${1}
+    checkFile $infile || return 1
+    awk '
+    {
+        if ($0 ~ /Electric Field/) { 
+        while ($0 !~ /Atom/) { print $0 ; getline } 
+        while ($0 ~ /Atom/) { print $0 ; getline }
+        while ($0 !~ /^ ------/) {
+            CENTERID=$1
+            OLDSTR=sprintf("%i    ",CENTERID)
+            NEWSTR=sprintf("%i Fit",CENTERID)
+            sub(OLDSTR,NEWSTR,$0)
+            print $0
+            getline
+            }
+        }
+        sub(/Read-in Center/,"ESP Fit Center",$0)
+        print $0
+    }' ${infile}
 }
 
 function parseGaussian {
