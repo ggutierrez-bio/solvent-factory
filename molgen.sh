@@ -38,7 +38,7 @@ function molgenMD {
     runMD ../templates/vac_md.in $residue vac_min/${residue}.rst || return 1
     echo "Please, check the molecule behaves as expected in vacuum md."
     echo "You can load the trajectory by:"
-    echo "    vmd -f molecule/vac_md/${residue}.prmtop -f molecule/vac_md/${residue}.mdcrd"
+    echo "    vmd -f molecule/vac_md/${residue}.prmtop molecule/vac_md/${residue}.mdcrd"
     confirm "Type Y or y to continue: "
 }
 
