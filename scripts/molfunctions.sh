@@ -1,6 +1,5 @@
 #!/bin/bash
 scriptsdir=$(dirname $BASH_SOURCE)
-source $scriptsdir/gaussianFix.sh
 source $scriptsdir/files.sh
 
 

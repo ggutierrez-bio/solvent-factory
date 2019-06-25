@@ -1,0 +1,7 @@
+# minimization
+&cntrl
+imin=1, maxcyc=50000,
+ntpr=100,
+
+/
+
