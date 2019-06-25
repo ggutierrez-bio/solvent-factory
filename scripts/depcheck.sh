@@ -35,6 +35,6 @@ function checkObabel {
 
 function checkGaussian {
     echo "Checking gaussian..."
-    checkBinary g09 || return 1
+    checkBinary g16 || return 1
     echo "[SUCCESS]"
 }

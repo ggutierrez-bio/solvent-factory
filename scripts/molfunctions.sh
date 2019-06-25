@@ -33,49 +33,10 @@ function prepGaussian {
     infile=${1}
     checkFile $infile || return 1
     outfile=${2:-infile%%.mol2}.com
+    respfile=${2:-infile%%.mol2}.resp
     [[ -z "$residue" ]] && residue=${3:-LIG}
     charge=$(calcMol2Charge $infile)
-    antechamber -i $infile -fi mol2 -o $outfile -fo gcrt -nc "$charge" -ch $residue
-}
-
-function checkRespGaussian {
-    infile=${1}
-    checkFile $infile || return 1
-    if [ "$(egrep '^\s*[0-9]+\sFit' $infile)" == "" ]; then
-        return 1
-    fi
-}
-
-function genGaussianFixCom {
-    infile=${1}
-    checkFile $infile || return 1
-    printf "%s\n" "$(grep -i "%chk=" ${infile})"
-    printf "#p geom=allcheck chkbas guess=(read,only) density=check\n"
-    printf "nosymm prop=(potential,read) pop=minimal\n\n"
-    grep "ESP Fit Center" ${infile} | cut -c32- -
-    printf "\n"
-}
-
-function genGaussianFixedLog {
-    infile=${1}
-    checkFile $infile || return 1
-    awk '
-    {
-        if ($0 ~ /Electric Field/) { 
-        while ($0 !~ /Atom/) { print $0 ; getline } 
-        while ($0 ~ /Atom/) { print $0 ; getline }
-        while ($0 !~ /^ ------/) {
-            CENTERID=$1
-            OLDSTR=sprintf("%i    ",CENTERID)
-            NEWSTR=sprintf("%i Fit",CENTERID)
-            sub(OLDSTR,NEWSTR,$0)
-            print $0
-            getline
-            }
-        }
-        sub(/Read-in Center/,"ESP Fit Center",$0)
-        print $0
-    }' ${infile}
+    antechamber -i $infile -fi mol2 -o $outfile -fo gcrt -gv 1 -ge $residue.gesp -nc "$charge" -ch $residue
 }
 
 function parseGaussian {
@@ -85,7 +46,7 @@ function parseGaussian {
     outfile=${2:-infile%%.log}_opt.mol2
     mkdir $title
     cd $title
-    antechamber -i ../$infile -fi gout -o ../$outfile -fo mol2 -c resp -rn $title -at amber
+    antechamber -i ../$infile -fi gesp -o ../$outfile -fo mol2 -c resp -rn $title -at amber
     cd ..
     rm -rf $title
 }
@@ -117,7 +78,7 @@ function runMD {
     crdfile=${3:-"${residue}.crd"}
     topfile=${4:-"${residue}.prmtop"}
     rstfile=${5:-"${residue}.rst"}
-    trjfile=${6:-"${residue}.mdcrd"}
+    trjfile=${6:-"${residue}.nc"}
     checkFile $crdfile
     checkFile $topfile
     checkFile $infile

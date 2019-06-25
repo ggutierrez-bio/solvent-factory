@@ -18,15 +18,8 @@ function molgenCheckdeps {
 function molgenFrcmod {
     genMol2 ../$ligfile > ${residue}.mol2 && \
     prepGaussian ${residue}.mol2 $residue && \
-    g09 ${residue}.com && \
-    if ! checkRespGaussian ${residue}.log ; then
-        genGaussianFixCom ${residue}.log > ${residue}_fix.com && \
-        g09 ${residue}_fix.com && \
-        genGaussianFixedLog ${residue}_fix.log > ${residue}.resp.log || return 1
-        resplog=${residue}.resp.log
-    fi
-    resplog=${resplog:-"${residue}.log"}
-    parseGaussian $resplog $residue && \
+    g16 ${residue}.com 
+    parseGaussian ${residue}.gesp $residue && \
     genFrcmod ${residue}_opt.mol2 $residue || return 1
     echo "Please, modify the molecule/${residue}.frcmod file."
     confirm "Type Y or y when you're done: "
@@ -59,14 +52,14 @@ function molgen {
         frcmod)
             molgenFrcmod || return 1
             ;&
-        mdcheck)
+        md)
             molgenMD || return 1
             ;&
         genoff)
             molgenGenOff || return 1
             ;;
         *)
-            echo $"Usage: $0 [{check|frcmod|mdcheck|genoff}]" >&2
+            echo $"Usage: $0 [{check|frcmod|md|genoff}]" >&2
             return 1
     esac
     cd $CWD
